@@ -1,0 +1,193 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>ZPLPrintManagementHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class ZPLPrintManagementHelper
+{
+    public static str __printerName = '#ZPLPrintManagement';
+    public static int __defaultWidth = 6;
+    public static int __defaultHeight = 4;
+    public static str __labelaryURL = 'http://api.labelary.com';
+    public static DocuTypeId __docuTypeId = 'File';
+    public static str __fileName = 'label.png';
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>createZPLPrinter</Name>
+				<Source><![CDATA[
+    public static SysCorpNetPrinters createZPLPrinter()
+    {
+        SysCorpNetPrinters printer;
+
+        Dialog dialog = new Dialog("@ZPLLBL:LabelPrinterCreation");
+        dialog.addGroup("@ZPLLBL:PrinterIdentification");
+        DialogField dialogFieldPrinterName = dialog.addFieldValue(extendedTypeStr(Name), ZPLPrintManagementHelper::__printerName, "@ZPLLBL:PrinterName");
+        dialogFieldPrinterName.mandatory_RU(true);
+
+        dialog.addGroup("@ZPLLBL:PrintSettings");
+        DialogField dialogFieldLabelWidth = dialog.addFieldValue(extendedTypeStr(Integer), ZPLPrintManagementHelper::__defaultWidth, "@ZPLLBL:LabelWidth");
+        DialogField dialogFieldLabelHeight = dialog.addFieldValue(extendedTypeStr(Integer), ZPLPrintManagementHelper::__defaultHeight, "@ZPLLBL:LabelHeight");
+
+        dialog.run();
+        if (dialog.closedOk())
+        {
+            select firstonly printer where printer.PrinterName == dialogFieldPrinterName.value();
+            if (printer.RecId != 0)
+            {
+                throw error("@ZPLLBL:ThePrinter1AlreadyExists");
+            }
+
+            //Create Printer
+            printer.initValue();
+            printer.PrinterName = dialogFieldPrinterName.value();
+            printer.Description = "@ZPLLBL:VirtualPrinterForPrintManagement";
+            printer.PrinterPath = dialogFieldPrinterName.value();
+            printer.Active = true;
+            printer.PrinterId = newGuid();
+            printer.insert();
+
+            DocumentRoutingClientApp clientApp;
+            clientApp.AppId = guid2Str(newGuid());
+            clientApp.insert();
+
+            DocumentRoutingPrinterAppAssociation printerApp;
+            printerApp.ClientApp = clientApp.RecId;
+            printerApp.Printer = printer.RecId;
+            printerApp.insert();
+
+            //Create WHS Printer record
+            WHSSysCorpNetPrinters whsSysCorpNetPrinters;
+            whsSysCorpNetPrinters.initValue();
+            whsSysCorpNetPrinters.PrinterName = printer.PrinterName;
+            whsSysCorpNetPrinters.PrinterConnectionType = WhsLabelPrinterConnectionType::DRAOrHybrid;
+            whsSysCorpNetPrinters.ZPLPrinterDPI = ZPLPrinterDPI::DPI600;
+            whsSysCorpNetPrinters.ZPLPrinterWidth_ALTC = dialogFieldLabelWidth.value();
+            whsSysCorpNetPrinters.ZPLPrinterHeight_ALTC = dialogFieldLabelHeight.value();
+            whsSysCorpNetPrinters.LabelPrintServiceExecutionPolicy = WhsLabelPrintServiceExecutionPolicy::PAL29ZPLPrintManagement;
+            whsSysCorpNetPrinters.insert();
+
+        }
+
+        return printer;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>debugZPLPrinterRequst</Name>
+				<Source><![CDATA[
+    public static void debugZPLPrinterRequst(
+        Name _printerName,
+        str _labelString)
+    {
+        //Create history table
+        ZPLPrintManagementHistory zplPrintManagementHistory;
+        zplPrintManagementHistory.initValue();
+        zplPrintManagementHistory.PrinterName = _printerName;
+        zplPrintManagementHistory.PrintedBy = curUserId();
+        zplPrintManagementHistory.PrintedDateTime = DateTimeUtil::getSystemDateTime();
+        zplPrintManagementHistory.ZPL = _labelString;
+        zplPrintManagementHistory.insert();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>handleZPLPrinterRequst</Name>
+				<Source><![CDATA[
+    public static void handleZPLPrinterRequst(
+        Name _printerName,
+        str _labelString,
+        int _width,
+        int _height,
+        ZPLPrinterDPI _dpi)
+    {
+        System.IO.MemoryStream imageStream =
+            ZPLPrintManagementHelper::postZplPngStream(
+            _labelString,
+            _width,
+            _height);
+
+        //Pause between request to avoid too many request exception from labelary API
+        System.Threading.Thread::Sleep(500);
+
+        //Create history table
+        ZPLPrintManagementHistory zplPrintManagementHistory;
+        zplPrintManagementHistory.initValue();
+        zplPrintManagementHistory.PrinterName = _printerName;
+        zplPrintManagementHistory.PrintedBy = curUserId();
+        zplPrintManagementHistory.PrintedDateTime = DateTimeUtil::getSystemDateTime();
+        zplPrintManagementHistory.ZPL = _labelString;
+        zplPrintManagementHistory.insert();
+
+        //Attach ZPL preview image to history record
+        DocumentManagement::attachFileForRecord(
+            zplPrintManagementHistory,
+            __docuTypeId,
+            imageStream,
+            __fileName,
+            __fileName);
+
+        info("@ZPLLBL:LabelSuccessfullySentToTheLabelPrintArchive");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postZplPngStream</Name>
+				<Source><![CDATA[
+    public static System.IO.MemoryStream postZplPngStream(
+        str _labelString,
+        int _width,
+        int _height,
+        str _dpiStr = "6dpmm")
+    {
+        System.Net.WebClient webClient;
+        System.IO.MemoryStream imageStream;
+        System.Byte[] responseBytes;
+        System.Byte[] requestBytes;
+        str uri;
+        str url;
+        System.Net.WebHeaderCollection headers;
+        str contentTypeValue = 'application/x-www-form-urlencoded';
+        str contentTypeKey = 'Content-Type';
+
+        try
+        {
+            url = strFmt(
+                "%1/v1/printers/%2/labels/%3x%4/0/",
+                __labelaryURL,
+                _dpiStr,
+                num2str(_width,0,0,DecimalSeparator::Dot,ThousandSeparator::None),
+                num2str(_height,0,0,DecimalSeparator::Dot,ThousandSeparator::None)
+            );
+
+            webClient = new System.Net.WebClient();
+            headers = new System.Net.WebHeaderCollection();
+            headers.Add(contentTypeKey, contentTypeValue);
+            webClient.Headers = headers;
+            requestBytes = System.Text.Encoding::UTF8.GetBytes(_labelString);
+            responseBytes = webClient.UploadData(url, "POST", requestBytes);
+
+            imageStream = new System.IO.MemoryStream(responseBytes);
+
+            webClient.Dispose();
+
+            return imageStream;
+        }
+        catch (Exception::CLRError)
+        {
+            throw error(AifUtil::getClrErrorMessage());
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
+
+

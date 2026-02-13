@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>ZPLPrintTest</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Microsoft.Dynamics.AX.Framework.DocumentContract;
+
+internal final class ZPLPrintTest
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        // ZPL code for the label
+        str zplCode = '^XA^CI28^PW800^LL600^FO20,20^GB760,560,3^FS^FO50,40^A0N,40,40^FDPRODUCT LABEL^FS^FO40,90^GB720,2,2^FS^FO50,120^A0N,30,30^FDItem:^FS^FO200,120^A0N,30,30^FDABC-12345^FS^FO50,160^A0N,30,30^FDDescription:^FS^FO200,160^A0N,30,30^FDIndustrial Component X^FS^FO50,200^A0N,30,30^FDBatch:^FS^FO200,200^A0N,30,30^FDBT-2026-001^FS^FO50,240^A0N,30,30^FDQty:^FS^FO200,240^A0N,30,30^FD100 PCS^FS^FO40,290^GB720,2,2^FS^FO100,320^BY3,2,120^BCN,120,Y,N,N^FDABC12345001^FS^XZ';
+
+        // Printer name (as registered in Network printers)
+        str printerName = '#ZPLPrintManagement';
+        // Call the method to print the ZPL label
+        WhsDocumentRouting::printZPLLabelToPrinter(printerName, zplCode);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

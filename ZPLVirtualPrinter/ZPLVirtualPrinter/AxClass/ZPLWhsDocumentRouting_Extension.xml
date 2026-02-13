@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>ZPLWhsDocumentRouting_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(classStr(WhsDocumentRouting))]
+final class ZPLWhsDocumentRouting_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>printLabelPrintCommandToPrinterWithEncoding</Name>
+				<Source><![CDATA[
+    public static void printLabelPrintCommandToPrinterWithEncoding(
+        Name _printerName,
+        WhsLabelPrintCommand _labelPrintCommand,
+        System.Text.Encoding _encoding)
+    {
+        next printLabelPrintCommandToPrinterWithEncoding(_printerName, _labelPrintCommand, _encoding);
+
+        SrsReportPrinterContract activePrinterContract = SrsReportRunUtil::getActivePrinter(_printerName);
+        WHSSysCorpNetPrinters whsPrinter = WHSSysCorpNetPrinters::find(_printerName);
+        if (whsPrinter.LabelPrintServiceExecutionPolicy == WhsLabelPrintServiceExecutionPolicy::PAL29ZPLPrintManagement)
+        {
+            ZPLPrintManagementHelper::handleZPLPrinterRequst(
+                _printerName,
+                _labelPrintCommand.parmLabelString(),
+                whsPrinter.ZPLPrinterWidth_ALTC,
+                whsPrinter.ZPLPrinterHeight_ALTC,
+                whsPrinter.ZPLPrinterDPI);
+        }
+        else if (whsPrinter.ZPLPrinterDebug_ALTC)
+        {
+            ZPLPrintManagementHelper::debugZPLPrinterRequst(
+                _printerName,
+                _labelPrintCommand.parmLabelString());
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,42 @@
+﻿EnglishDebugDiagnostics=Diagnostics
+ ;ZPLVirtualPrinter
+General=General
+ ;ZPLVirtualPrinter
+Identification=Identification
+ ;ZPLVirtualPrinter
+InitializeZplPrinter=Initialize ZPL printer
+ ;ZPLVirtualPrinter
+Label=Label 
+ ;ZPLVirtualPrinter
+LabelHeight=Label height
+ ;ZPLVirtualPrinter
+LabelHistory=Label history
+ ;ZPLVirtualPrinter
+LabelPrinterCreation=Label printer creation
+ ;ZPLVirtualPrinter
+LabelSuccessfullySentToTheLabelPrintArchive=Label successfully sent to the label print archive
+ ;ZPLVirtualPrinter
+LabelWidth=Label width
+ ;ZPLVirtualPrinter
+PrinterIdentification=Printer identification
+ ;ZPLVirtualPrinter
+PrinterName=Printer name
+ ;ZPLVirtualPrinter
+PrintManagement=Print Management
+ ;ZPLVirtualPrinter
+PrintSettings=Print settings
+ ;ZPLVirtualPrinter
+ThePrinter1AlreadyExists=The printer %1 already exists
+ ;ZPLVirtualPrinter
+VirtualPrinterForPrintManagement=Virtual printer for print management 
+ ;ZPLVirtualPrinter
+ZPL=ZPL
+ ;ZPLVirtualPrinter
+ZPLIDPIResolution=DPI Resolution
+ ;ZPLVirtualPrinter
+ZPLIDPIResolution203=203 DPI
+ ;ZPLVirtualPrinter
+ZPLIDPIResolution600=600 DPI 
+ ;ZPLVirtualPrinter
+ZplPrinterForPrintManagementSuccessfullyCreated=ZPL Printer for print management successfully created
+ ;ZPLVirtualPrinter

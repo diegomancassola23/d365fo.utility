@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>ZPLDocumentRoutingJob_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(tableStr(DocumentRoutingJob))]
+final class ZPLDocumentRoutingJob_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>CreateNewDocumentRoutingJob</Name>
+				<Source><![CDATA[
+    public static DocumentRoutingJob CreateNewDocumentRoutingJob(str blobItemName,  str printerName, str printerPath, str documentName, guid activityId, int totalPages, Guid printerId, CompanyId companyId, UserConnection uc)
+    {
+        DocumentRoutingJob documentRoutingJob;
+
+        documentRoutingJob = next CreateNewDocumentRoutingJob(blobItemName, printerName, printerPath, documentName, activityId, totalPages, printerId, companyId, uc);
+
+        WHSSysCorpNetPrinters whsPrinter = WHSSysCorpNetPrinters::find(printerName);
+        if (whsPrinter.LabelPrintServiceExecutionPolicy == WhsLabelPrintServiceExecutionPolicy::PAL29ZPLPrintManagement)
+        {
+            documentRoutingJob.EndProcessTime = DateTimeUtil::utcNow();
+            documentRoutingJob.StartProcessTime = DateTimeUtil::utcNow();
+            documentRoutingJob.JobStatus = DocumentRoutingJobStatus::Succeeded;
+            documentRoutingJob.update();
+        }
+
+        return documentRoutingJob;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

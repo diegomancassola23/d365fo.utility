@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<AxEnumExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>WhsLabelPrintServiceExecutionPolicy.ZPL</Name>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>PAL29ZPLPrintManagement</Name>
+			<Label>@ZPLLBL:PrintManagement</Label>
+		</AxEnumValue>
+	</EnumValues>
+	<PropertyModifications />
+	<ValueModifications />
+</AxEnumExtension>
+
