@@ -1,4 +1,4 @@
-# D365FO Tools Repository
+# d365fo.utility
 
 ![Platform](https://img.shields.io/badge/platform-D365FO-blue)
 ![Language](https://img.shields.io/badge/language-X++-orange)
