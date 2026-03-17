@@ -2,7 +2,7 @@
 
 ![Platform](https://img.shields.io/badge/platform-D365FO-blue)
 ![Language](https://img.shields.io/badge/language-X++-orange)
-![License](https://img.shields.io/badge/license-MIT-green)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 ![Status](https://img.shields.io/badge/status-Development-yellow)
 
 This repository serves as a **collection of utilities and tools for Microsoft Dynamics 365 Finance & Operations**. Each tool is contained in its own folder with its own README and installation instructions.
